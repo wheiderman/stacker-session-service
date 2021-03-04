@@ -26,4 +26,4 @@ Content-Length: 21
 Content-Type: text/plain; charset=utf-8
 
 Hello from a session!
-```# stacker-session-service
+```
