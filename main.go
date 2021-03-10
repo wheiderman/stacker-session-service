@@ -1,19 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
-	"time"
+	"os"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/gomodule/redigo/redis"
+	"github.com/alexedwards/scs/redisstore"
 )
 
 var sessionManager *scs.SessionManager
 
 func main() {
-	// Initialize a new session manager and configure the session lifetime.
+	// Establish a redigo connection pool.
+	redisPort := os.Getenv("REDIS_PORT")
+	pool := &redis.Pool{
+		MaxIdle: 10,
+		Dial: func() (redis.Conn, error) {
+			redisURL := fmt.Sprintf("localhost:%v", redisPort)
+			return redis.Dial("tcp", redisURL)
+		},
+	}
+
+	// Initialize a new session manager and configure it to use redisstore as
+	// the session store.
 	sessionManager = scs.New()
-	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Store = redisstore.New(pool)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/put", putHandler)
